@@ -1,7 +1,7 @@
-Name:           rcm-$channel
+Name:           rackspace-cloud-monitoring-meta-$channel
 Version:        1
 Release:        0
-Summary:        Rackspace Cloud Monitoring Meta-Repo ($channel)
+Summary:        Rackspace Cloud Monitoring Meta Repo ($channel)
 
 Group:          System Environment/Base
 License:        Apache
