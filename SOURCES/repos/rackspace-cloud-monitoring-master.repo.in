@@ -1,0 +1,6 @@
+[rackspace]
+name=Rackspace Monitoring
+baseurl=http://master.packages.cloudmonitoring.rackspace.com/$directory_name/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/rackspace-package-key.asc
