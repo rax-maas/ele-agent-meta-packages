@@ -33,7 +33,7 @@ def generate_spec(tmpl, channel):
     }
 
     dist = get_dist()
-    if dist == 'centos':
+    if dist == 'redhat' or dist == 'centos':
         dist = platform.dist()
 
         major = dist[1].split(".")[0]
@@ -54,8 +54,6 @@ def generate_spec(tmpl, channel):
 
     elif dist == 'fedora':
         data['key'] = 'linux.asc'
-    elif dist == 'redhat':
-        pass
 
     tmpl = Template(tmpl)
 
