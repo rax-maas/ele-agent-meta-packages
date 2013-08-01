@@ -1,4 +1,4 @@
-Source: rackspace-cloud-monitoring-meta-stable
+Source: rackspace-cloud-monitoring-meta-unstable
 Section: unknown
 Priority: extra
 Maintainer: root <root@debian>
@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.3
 Homepage: <insert the upstream URL, if relevant>
 
-Package: rackspace-cloud-monitoring-meta-stable
+Package: rackspace-cloud-monitoring-meta-unstable
 Architecture: all
 Depends: ${misc:Depends}
 Description: <insert up to 60 chars description>

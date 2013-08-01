@@ -18,5 +18,6 @@ deb:
 	[ -x ${DPKGBUILD} ] && cd DEB/rackspace-cloud-monitoring-meta-stable-1.0 && ${DPKGBUILD} -us -uc || exit 0
 	[ -x ${DPKGBUILD} ] && cd DEB/rackspace-cloud-monitoring-meta-master-1.0 && ${DPKGBUILD} -us -uc || exit 0
 	[ -x ${DPKGBUILD} ] && cd DEB/rackspace-cloud-monitoring-meta-unstable-1.0 && ${DPKGBUILD} -us -uc || exit 0
+	@rm -rf ../debs && mkdir -p ../debs/${PLATFORM} && cp DEB/*.deb ../debs/${PLATFORM}
 
 .PHONY: all rpm deb

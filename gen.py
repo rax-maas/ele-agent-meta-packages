@@ -1,7 +1,6 @@
 import shutil
 import platform
 import sys
-import tools.pkgutils
 from string import Template
 
 SPEC_IN = 'repo.spec.in'
@@ -23,7 +22,10 @@ def get_dist():
 
 
 def get_directory_name():
-    return tools.pkgutils.pkg_dir()
+    dist = platform.dist()
+    version = dist[1][0]
+    dist = "%s-%s" % (platform.dist()[0], version)
+    return "%s-%s" % (dist, platform.machine().lower())
 
 
 def generate_spec(tmpl, channel):
