@@ -1,6 +1,7 @@
 import shutil
 import platform
 import sys
+import tools.pkgutils
 from string import Template
 
 SPEC_IN = 'repo.spec.in'
@@ -9,7 +10,12 @@ SPEC_FMT = 'SPECS/%s.spec'
 REPO_IN = 'SOURCES/repos/rackspace-cloud-monitoring-%s.repo.in'
 REPO_FMT = 'SOURCES/repos/rackspace-cloud-monitoring-%s.repo'
 
+DEB_POSTINST_IN = 'DEB/rackspace-cloud-monitoring-meta-%s-1.0/debian/postinst.in'
+DEB_POSTINST = 'DEB/rackspace-cloud-monitoring-meta-%s-1.0/debian/postinst'
+
 rpm = ['redhat', 'fedora', 'suse', 'opensuse', 'centos']
+deb = ['debian', 'ubuntu']
+dists = rpm + deb
 
 
 def get_dist():
@@ -17,10 +23,7 @@ def get_dist():
 
 
 def get_directory_name():
-    dist = platform.dist()
-    version = dist[1][0]
-    dist = "%s-%s" % (platform.dist()[0], version)
-    return "%s-%s" % (dist, platform.machine().lower())
+    return tools.pkgutils.pkg_dir()
 
 
 def generate_spec(tmpl, channel):
@@ -68,11 +71,41 @@ def generate_spec(tmpl, channel):
     repo.write(tmpl.safe_substitute(data))
     repo.close()
 
+
+def generate_deb(channel):
+    data = {
+        'channel': channel,
+        'system': platform.system().lower(),
+        'machine': platform.machine().lower(),
+        'dist': get_dist(),
+        'directory_name': get_directory_name()
+    }
+
+    if data['directory_name'] == 'debian-7-x86_64':
+        data['directory_name'] = 'debian-wheezy-x86_64'
+    elif data['directory_name'] == 'debian-6-x86_64':
+        data['directory_name'] = 'debian-squeeze-x86_64'
+
+    tmpl = open(DEB_POSTINST_IN % channel).read()
+    tmpl = Template(tmpl)
+
+    postinst = open(DEB_POSTINST % channel, "w")
+    postinst.write(tmpl.safe_substitute(data))
+    postinst.close()
+
+
 if __name__ == '__main__':
-    if get_dist() not in rpm:
+    dist = get_dist()
+    if dist not in dists:
         sys.exit(0)
 
     channels = ['stable', 'unstable', 'master']
-    spec_tmpl = open(SPEC_IN).read()
-    for channel in channels:
-        generate_spec(spec_tmpl, channel)
+
+    if dist in rpm:
+        spec_tmpl = open(SPEC_IN).read()
+        for channel in channels:
+            generate_spec(spec_tmpl, channel)
+
+    if dist in deb:
+        for channel in channels:
+            generate_deb(channel)
