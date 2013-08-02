@@ -1,13 +1,11 @@
 Source: rackspace-cloud-monitoring-meta-stable
 Section: unknown
 Priority: extra
-Maintainer: root <root@debian>
-Build-Depends: debhelper (>= 8.0.0)
+Maintainer: Rackspace Cloud Monitoring <monitoring@rackspace.com>
+Build-Depends: 
 Standards-Version: 3.9.3
-Homepage: <insert the upstream URL, if relevant>
 
 Package: rackspace-cloud-monitoring-meta-stable
 Architecture: all
 Depends: ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: Rackspace Cloud Monitoring Stable Repo
