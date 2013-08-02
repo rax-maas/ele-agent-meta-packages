@@ -2,8 +2,6 @@ Source: rackspace-cloud-monitoring-meta-unstable
 Section: unknown
 Priority: extra
 Maintainer: Rackspace Cloud Monitoring <monitoring@rackspace.com>
-Build-Depends: 
-Standards-Version: 3.9.3
 
 Package: rackspace-cloud-monitoring-meta-unstable
 Architecture: all
