@@ -1,6 +1,7 @@
 import shutil
 import platform
 import sys
+import re
 from string import Template
 
 SPEC_IN = 'repo.spec.in'
@@ -23,7 +24,7 @@ def get_dist():
 
 def get_directory_name():
     dist = platform.dist()
-    version = dist[1][0]
+    version = dist[1]
     dist = "%s-%s" % (platform.dist()[0], version)
     return "%s-%s" % (dist, platform.machine().lower())
 
@@ -83,10 +84,12 @@ def generate_deb(channel):
         'directory_name': get_directory_name()
     }
 
-    if data['directory_name'] == 'debian-7-x86_64':
+    if re.search('debian-7.(\d)-x86_64', data['directory_name']):
         data['directory_name'] = 'debian-wheezy-x86_64'
-    elif data['directory_name'] == 'debian-6-x86_64':
+    elif re.search('debian-6.(\d)-x86_64', data['directory_name']):
         data['directory_name'] = 'debian-squeeze-x86_64'
+
+    print(data)
 
     tmpl = open(DEB_POSTINST_IN % channel).read()
     tmpl = Template(tmpl)
