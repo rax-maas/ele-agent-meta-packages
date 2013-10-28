@@ -25,7 +25,7 @@ def get_dist():
 def get_directory_name():
     dist = platform.dist()
     version = dist[1]
-    dist = "%s-%s" % (platform.dist()[0], version)
+    dist = "%s-%s" % (platform.dist()[0].lower(), version)
     return "%s-%s" % (dist, platform.machine().lower())
 
 
