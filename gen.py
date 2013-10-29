@@ -45,6 +45,18 @@ def generate_spec(tmpl, channel):
         major = dist[1].split(".")[0]
         distro = dist[0]
 
+        if re.search('redhat-6.(\d)-x86_64', data['directory_name']):
+            data['directory_name'] = 'redhat-6-x86_64'
+        elif re.search('redhat-5.(\d)-x86_64', data['directory_name']):
+            data['directory_name'] = 'redhat-5-x86_64'
+        elif re.search('centos-5.(\d)-x86_64', data['directory_name']):
+            data['directory_name'] = 'centos-5-x86_64'
+        elif re.search('centos-6.(\d)-x86_64', data['directory_name']):
+            data['directory_name'] = 'centos-6-x86_64'
+
+
+        print(data)
+
         # http://bugs.centos.org/view.php?id=5197
         # CentOS 5.7 identifies as redhat
         if int(major) <= 5 and distro == "redhat":
@@ -88,16 +100,7 @@ def generate_deb(channel):
         data['directory_name'] = 'debian-wheezy-x86_64'
     elif re.search('debian-6.(\d)-x86_64', data['directory_name']):
         data['directory_name'] = 'debian-squeeze-x86_64'
-    elif re.search('redhat-6.(\d)-x86_64', data['directory_name']):
-        data['directory_name'] = 'redhat-6-x86_64'
-    elif re.search('redhat-5.(\d)-x86_64', data['directory_name']):
-        data['directory_name'] = 'redhat-5-x86_64'
-    elif re.search('centos-5.(\d)-x86_64', data['directory_name']):
-        data['directory_name'] = 'centos-5-x86_64'
-    elif re.search('centos-6.(\d)-x86_64', data['directory_name']):
-        data['directory_name'] = 'centos-6-x86_64'
 
-    print(data)
 
     tmpl = open(DEB_POSTINST_IN % channel).read()
     tmpl = Template(tmpl)
