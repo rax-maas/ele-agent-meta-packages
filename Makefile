@@ -7,7 +7,12 @@ DESTDIR=../payload
 PYTHON=python
 
 all:
+	@rm -f config.json
+ifdef DISTRIBUTION
+	@$(PYTHON) gen.py --distribution=${DISTRIBUTION}
+else
 	@$(PYTHON) gen.py
+endif
 	@$(MAKE) $(PKG_TYPE)
 
 rpm:

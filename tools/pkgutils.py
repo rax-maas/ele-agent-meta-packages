@@ -3,6 +3,7 @@ import os
 import errno
 import platform
 import sys
+import json
 import subprocess
 
 # Figure out what type of package to build based on platform info
@@ -13,6 +14,16 @@ deb = ['debian', 'ubuntu']
 rpm = ['redhat', 'fedora', 'suse', 'opensuse', 'centos']
 
 dist = platform.dist()[0].lower()
+
+def read_config():
+    config = {}
+    path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
+    try:
+        data = open(path).read()
+        config = json.loads(data)
+    except:
+        pass
+    return config
 
 
 def pkg_type():
@@ -32,6 +43,13 @@ def pkg_dir():
     system = platform.system().lower()
     machine = platform.machine().lower()
     addon = ""
+    config = read_config()
+
+    # override distribution if configuration is set
+    distribution= config.get('distribution', None)
+    if distribution:
+        return distribution
+
     if system == "freebsd":
         system = system + platform.release().lower()[0]
     if system == "linux":
