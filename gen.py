@@ -2,6 +2,8 @@ import shutil
 import platform
 import sys
 import re
+import json
+from optparse import OptionParser
 from string import Template
 
 SPEC_IN = 'repo.spec.in'
@@ -29,7 +31,7 @@ def get_directory_name():
     return "%s-%s" % (dist, platform.machine().lower())
 
 
-def generate_spec(tmpl, channel):
+def generate_spec(options, tmpl, channel):
     data = {
         'channel': channel,
         'system': platform.system().lower(),
@@ -55,8 +57,6 @@ def generate_spec(tmpl, channel):
             data['directory_name'] = 'centos-6-x86_64'
 
 
-        print(data)
-
         # http://bugs.centos.org/view.php?id=5197
         # CentOS 5.7 identifies as redhat
         if int(major) <= 5 and distro == "redhat":
@@ -73,6 +73,8 @@ def generate_spec(tmpl, channel):
     elif dist == 'fedora':
         data['key'] = 'linux.asc'
 
+    data['directory_name'] = options.get('distribution', data['directory_name'])
+
     tmpl = Template(tmpl)
 
     spec = open(SPEC_FMT % channel, "w")
@@ -87,7 +89,7 @@ def generate_spec(tmpl, channel):
     repo.close()
 
 
-def generate_deb(channel):
+def generate_deb(options, channel):
     data = {
         'channel': channel,
         'system': platform.system().lower(),
@@ -101,6 +103,8 @@ def generate_deb(channel):
     elif re.search('debian-6.(\d)-x86_64', data['directory_name']):
         data['directory_name'] = 'debian-squeeze-x86_64'
 
+    if options.get('distribution'):
+        data['directory_name'] = options.get('distribution')
 
     tmpl = open(DEB_POSTINST_IN % channel).read()
     tmpl = Template(tmpl)
@@ -111,6 +115,16 @@ def generate_deb(channel):
 
 
 if __name__ == '__main__':
+    parser = OptionParser()
+    parser.add_option("-d", "--distribution", dest="distribution")
+    (options, args) = parser.parse_args()
+
+    config = {}
+    config['distribution'] = options.distribution
+
+    with open('config.json', 'w') as file:
+        json.dump(config, file)
+
     dist = get_dist()
     if dist not in dists:
         sys.exit(0)
@@ -120,8 +134,8 @@ if __name__ == '__main__':
     if dist in rpm:
         spec_tmpl = open(SPEC_IN).read()
         for channel in channels:
-            generate_spec(spec_tmpl, channel)
+            generate_spec(config, spec_tmpl, channel)
 
     if dist in deb:
         for channel in channels:
-            generate_deb(channel)
+            generate_deb(config, channel)
