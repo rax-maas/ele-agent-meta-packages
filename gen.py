@@ -73,7 +73,8 @@ def generate_spec(options, tmpl, channel):
     elif dist == 'fedora':
         data['key'] = 'linux.asc'
 
-    data['directory_name'] = options.get('distribution', data['directory_name'])
+    if options.get('distribution'):
+        data['directory_name'] = options['distribution']
 
     tmpl = Template(tmpl)
 
