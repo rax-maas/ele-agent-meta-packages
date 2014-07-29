@@ -99,9 +99,9 @@ def generate_deb(options, channel):
         'directory_name': get_directory_name()
     }
 
-    if re.search('debian-7.(\d+.\d+)-x86_64', data['directory_name']):
+    if re.search('debian-7.(.*?)-x86_64', data['directory_name']):
         data['directory_name'] = 'debian-wheezy-x86_64'
-    elif re.search('debian-6.(\d+.\d+)-x86_64', data['directory_name']):
+    elif re.search('debian-6.(.*?)-x86_64', data['directory_name']):
         data['directory_name'] = 'debian-squeeze-x86_64'
 
     if options.get('distribution'):
