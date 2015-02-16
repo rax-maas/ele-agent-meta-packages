@@ -57,6 +57,8 @@ def generate_spec(options, tmpl, channel):
             data['directory_name'] = 'centos-5-x86_64'
         elif re.search('centos-6.(\d)-x86_64', data['directory_name']):
             data['directory_name'] = 'centos-6-x86_64'
+        elif re.search('centos-7.(\d)-x86_64', data['directory_name']):
+            data['directory_name'] = 'centos-7-x86_64'
 
 
         # http://bugs.centos.org/view.php?id=5197
