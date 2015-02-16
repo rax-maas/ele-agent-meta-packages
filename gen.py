@@ -47,17 +47,17 @@ def generate_spec(options, tmpl, channel):
         major = dist[1].split(".")[0]
         distro = dist[0]
 
-        if re.search('redhat-6.(\d)-x86_64', data['directory_name']):
+        if re.search('redhat-6', data['directory_name']):
             data['directory_name'] = 'redhat-6-x86_64'
-        elif re.search('redhat-7.(\d)-x86_64', data['directory_name']):
+        elif re.search('redhat-7', data['directory_name']):
             data['directory_name'] = 'redhat-7-x86_64'
-        elif re.search('redhat-5.(\d)-x86_64', data['directory_name']):
+        elif re.search('redhat-5', data['directory_name']):
             data['directory_name'] = 'redhat-5-x86_64'
-        elif re.search('centos-5.(\d)-x86_64', data['directory_name']):
+        elif re.search('centos-5', data['directory_name']):
             data['directory_name'] = 'centos-5-x86_64'
-        elif re.search('centos-6.(\d)-x86_64', data['directory_name']):
+        elif re.search('centos-6', data['directory_name']):
             data['directory_name'] = 'centos-6-x86_64'
-        elif re.search('centos-7.(\d)-x86_64', data['directory_name']):
+        elif re.search('centos-7', data['directory_name']):
             data['directory_name'] = 'centos-7-x86_64'
 
 
