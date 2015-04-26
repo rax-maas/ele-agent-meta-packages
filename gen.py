@@ -122,10 +122,12 @@ def generate_deb(options, channel):
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-d", "--distribution", dest="distribution")
+    parser.add_option("-a", "--target-arch", dest="target_arch", default='x86_64')
     (options, args) = parser.parse_args()
 
     config = {}
     config['distribution'] = options.distribution
+    config['target_arch'] = options.target_arch
 
     with open('config.json', 'w') as file:
         json.dump(config, file)
