@@ -109,6 +109,8 @@ def generate_deb(options, channel):
         data['directory_name'] = 'debian-squeeze-x86_64'
     elif re.search('debian-8.(.*?)-x86_64', data['directory_name']):
         data['directory_name'] = 'debian-jessie-x86_64'
+    elif re.search('debian-9.(.*?)-x86_64', data['directory_name']):
+        data['directory_name'] = 'debian-stretch-x86_64'
 
     if options.get('distribution'):
         data['directory_name'] = options.get('distribution')
