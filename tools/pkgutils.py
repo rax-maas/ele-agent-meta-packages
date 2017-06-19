@@ -62,6 +62,8 @@ def pkg_dir():
                 dist = [dist[0], 'wheezy']
             elif dist[1][0] == '8':
                 dist = [dist[0], 'jessie']
+            elif dist[1][0] == '9':
+                dist = [dist[0], 'stretch']
             else:
                 dist = [dist[0], 'undefined']
         # Lower case everyting (looking at you Ubuntu)
