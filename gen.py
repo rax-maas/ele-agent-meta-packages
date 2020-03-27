@@ -5,6 +5,7 @@ import re
 import json
 from optparse import OptionParser
 from string import Template
+from tools import pkgutils
 
 SPEC_IN = 'repo.spec.in'
 SPEC_FMT = 'SPECS/%s.spec'
@@ -25,10 +26,7 @@ def get_dist():
 
 
 def get_directory_name():
-    dist = platform.dist()
-    version = dist[1]
-    dist = "%s-%s" % (platform.dist()[0].lower(), version)
-    return "%s-%s" % (dist, platform.machine().lower())
+    return pkgutils.pkg_dir()
 
 
 def generate_spec(options, tmpl, channel):
