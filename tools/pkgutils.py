@@ -64,7 +64,10 @@ def pkg_dir():
                 dist = [dist[0], 'jessie']
             elif dist[1][0] == '9':
                 dist = [dist[0], 'stretch']
-            # leave it numerical to avoid forever maintaining this list
+            # starting with 10/buster
+            else:
+                # use the major numerical version rather than forever maintaining mapping
+                dist = [dist[0], dist[1].split(".")[0]]
         # Lower case everything (looking at you Ubuntu)
         dist = tuple([x.lower() for x in dist])
 
