@@ -64,9 +64,8 @@ def pkg_dir():
                 dist = [dist[0], 'jessie']
             elif dist[1][0] == '9':
                 dist = [dist[0], 'stretch']
-            else:
-                dist = [dist[0], 'undefined']
-        # Lower case everyting (looking at you Ubuntu)
+            # leave it numerical to avoid forever maintaining this list
+        # Lower case everything (looking at you Ubuntu)
         dist = tuple([x.lower() for x in dist])
 
         # Treat all redhat 5.* versions the same
