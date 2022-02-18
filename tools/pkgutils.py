@@ -11,7 +11,7 @@ import subprocess
 # TODO: Windows does MSI?
 
 deb = ['debian', 'ubuntu']
-rpm = ['redhat', 'fedora', 'suse', 'opensuse', 'centos', 'rocky', 'almalinux']
+rpm = ['redhat', 'fedora', 'suse', 'opensuse', 'centos']
 
 dist = platform.dist()[0].lower()
 
@@ -80,9 +80,9 @@ def pkg_dir():
             f = open('/etc/redhat-release')
             new_dist = f.read().lower().split(" ")[0]
             if new_dist == "rocky":
-              distro = "rockylinux"
+                distro = "rockylinux"
     	    else:
-	      distro = new_dist
+	            distro = new_dist
 
             dist = (distro, major)
 
