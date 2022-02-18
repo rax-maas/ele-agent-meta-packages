@@ -77,13 +77,12 @@ def pkg_dir():
             major = dist[1].split(".")[0]
             distro = dist[0]
 
-            # http://bugs.centos.org/view.php?id=5197
-            # CentOS 5.7 identifies as redhat
-            if int(major) <= 5 and distro == "redhat":
-                f = open('/etc/redhat-release')
-                new_dist = f.read().lower().split(" ")[0]
-                if new_dist == "centos":
-                    distro = "centos"
+            f = open('/etc/redhat-release')
+            new_dist = f.read().lower().split(" ")[0]
+            if new_dist == "rocky":
+                distro = "rockylinux"
+    	    else:
+	            distro = new_dist
 
             dist = (distro, major)
 
