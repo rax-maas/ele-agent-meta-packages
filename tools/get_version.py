@@ -2,6 +2,7 @@
 
 from optparse import OptionParser
 from pkgutils import git_describe
+from os.path import exists as file_exists
 
 # Generate versions for RPM/dpkg without dashes from git describe
 # make release 0 if tag matches exactly
@@ -9,6 +10,16 @@ from pkgutils import git_describe
 # PKG_VERSION = $(word 1,$(PKG_VERLIST))
 # PKG_RELEASE = $(word 2,$(PKG_VERLIST))
 
+
+# Output contents of /etc/os-release file
+# If no file exists, output that so that we can make changes in future accordingly.
+if file_exists('/etc/os-release'):
+    with open('/etc/os-release', 'r') as f:
+        print('/etc/os-release file contains:')
+        print(f.read())
+        print('=========================')
+else:
+    print('/etc/os-release file does not exist')
 
 # If there is no release then it is zero
 def zero_release(version):
