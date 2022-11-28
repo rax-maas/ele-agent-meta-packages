@@ -10,16 +10,17 @@ from os.path import exists as file_exists
 # PKG_VERSION = $(word 1,$(PKG_VERLIST))
 # PKG_RELEASE = $(word 2,$(PKG_VERLIST))
 
-
+# Below code is commented out because whatever the output of this file is used as meta version and it makes it redundant. 
+# We kept this code because if later we need to identify the name of machine, we can simply uncomment the code and get the details.
 # Output contents of /etc/os-release file
 # If no file exists, output that so that we can make changes in future accordingly.
-if file_exists('/etc/os-release'):
-    with open('/etc/os-release', 'r') as f:
-        print('/etc/os-release file contains:')
-        print(f.read())
-        print('=========================')
-else:
-    print('/etc/os-release file does not exist')
+#if file_exists('/etc/os-release'):
+#    with open('/etc/os-release', 'r') as f:
+#        print('/etc/os-release file contains:')
+#        print(f.read())
+#        print('=========================')
+#else:
+#    print('/etc/os-release file does not exist')
 
 # If there is no release then it is zero
 def zero_release(version):
