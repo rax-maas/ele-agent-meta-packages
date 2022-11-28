@@ -54,14 +54,27 @@ def full_version(sep='-', cwd=None):
 
 
 if __name__ == "__main__":
-    usage = "usage: %prog [field] [--sep=.]"
-    parser = OptionParser(usage=usage)
-    parser.add_option("-s", "--seperator", dest="seperator", default=None, help="version seperator")
-    parser.add_option("-d", "--directory", dest="directory", default=None, help="path to directory ")
-    (options, args) = parser.parse_args()
 
-    v = version(options.seperator, options.directory)
-    if v['tag'] and v['release']:
-        print("%s-%s" % (v['tag'], v['release']))
-    else:
-        print("%s" % (v['hash']))
+
+# Below all code comment out because earlier we are getting meta version by running the git describe on version and it was returning different version if someone had made any commit because it increate the no in version. If we get a new version, we new to run build for every buildslave because we need build for every agent on that version and doing so is hard thing because most of the agents are offline.
+# So we decided to go with a static meta version which is defined in file config.txt
+
+    # reading the data from the file
+    with open('config.txt') as f:
+        data = f.read()
+
+    # reconstructing the data as a dictionary
+    js = json.loads(data)
+    print(js['META_VERSION'])
+
+#    usage = "usage: %prog [field] [--sep=.]"
+#    parser = OptionParser(usage=usage)
+#    parser.add_option("-s", "--seperator", dest="seperator", default=None, help="version seperator")
+#    parser.add_option("-d", "--directory", dest="directory", default=None, help="path to directory ")
+#    (options, args) = parser.parse_args()
+
+#    v = version(options.seperator, options.directory)
+#    if v['tag'] and v['release']:
+#        print("%s-%s" % (v['tag'], v['release']))
+#    else:
+#        print("%s" % (v['hash']))
