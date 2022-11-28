@@ -12,4 +12,5 @@ if __name__ == "__main__":
     js = json.load(f)
 
     print(js['meta_version'])
-
+    # close file
+    f.close()
