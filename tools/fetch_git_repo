@@ -6,7 +6,7 @@ import sys
 import subprocess
 import contextlib
 
-from pkgutils import sh
+from pkgutils import sh_cmd
 from optparse import OptionParser
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,15 +24,15 @@ def chdir(dirname=None):
 
 
 def git_clone(source):
-    sh("git clone %s ." % (source))
+    sh_cmd("git clone %s ." % (source))
 
 
 def get_update_existing(source):
-    sh("git remote set-url origin %s" % (source))
-    sh("git clean -d -f -x")
-    sh("git fetch origin")
-    sh("git checkout origin/master")
-    sh("git submodule update --init --recursive")
+    sh_cmd("git remote set-url origin %s" % (source))
+    sh_cmd("git clean -d -f -x")
+    sh_cmd("git fetch origin")
+    sh_cmd("git checkout origin/master")
+    sh_cmd("git submodule update --init --recursive")
 
 
 def is_git_repo(dest):
