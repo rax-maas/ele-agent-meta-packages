@@ -61,6 +61,10 @@ apt_config_val() {
 find_apt_sources() {
   APTDIR=$(apt_config_val Dir)
   APTETC=$(apt_config_val 'Dir::Etc')
+  case $APTETC in
+    */) ;;
+    *) APTETC=${APTETC}/ ;;
+  esac
   APT_SOURCES="$APTDIR$APTETC$(apt_config_val 'Dir::Etc::sourcelist')"
   APT_SOURCESDIR="$APTDIR$APTETC$(apt_config_val 'Dir::Etc::sourceparts')"
 }
