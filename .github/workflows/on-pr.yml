@@ -1,0 +1,28 @@
+name: Code quality check
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 2.7
+      - name: Run JSON Lint
+        run: |
+          sudo apt update
+          sudo apt-get install jsonlint
+          jsonlint-php $(git ls-files '*.json')
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install fabric3
+          pip install pylint
+      - name: Analysing the code with pylint
+        run: |
+          pylint $(git ls-files '*.py') --disable=relative-import
+
