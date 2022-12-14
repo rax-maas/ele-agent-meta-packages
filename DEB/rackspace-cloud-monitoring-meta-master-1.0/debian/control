@@ -2,6 +2,7 @@ Source: rackspace-cloud-monitoring-meta-master
 Section: unknown
 Priority: extra
 Maintainer: Rackspace Cloud Monitoring <monitoring@rackspace.com>
+Build-Depends: debhelper (>= 5~)
 
 Package: rackspace-cloud-monitoring-meta-master
 Architecture: all
