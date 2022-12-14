@@ -3,7 +3,8 @@ import os
 import sys
 
 def update_compat_level_and_control_file():
-    """Updates the compat level to the value provided in argument and also updates Build Depends property for control file"""
+    """Updates the compat level to the value provided in argument and
+    also updates Build Depends property for control file"""
     compat_level = sys.argv[1]
     update_compat_level_command = "for d in DEB/*/ ; do (cd ""$d"" && echo "+ \
         compat_level+" > debian/compat); done"
