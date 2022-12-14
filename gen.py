@@ -1,10 +1,11 @@
-import shutil
+""" Module gen """
 import platform
 import sys
 import re
 import json
 from optparse import OptionParser
 from string import Template
+from tools import pkgutils
 
 SPEC_IN = 'repo.spec.in'
 SPEC_FMT = 'SPECS/%s.spec'
@@ -15,53 +16,43 @@ REPO_FMT = 'SOURCES/repos/rackspace-cloud-monitoring-%s.repo'
 DEB_POSTINST_IN = 'DEB/rackspace-cloud-monitoring-meta-%s-1.0/debian/postinst.in'
 DEB_POSTINST = 'DEB/rackspace-cloud-monitoring-meta-%s-1.0/debian/postinst'
 
-rpm = ['redhat', 'fedora', 'suse', 'opensuse', 'centos']
-deb = ['debian', 'ubuntu']
-dists = rpm + deb
-
+RPM = ['redhat', 'fedora', 'suse', 'opensuse', 'centos']
+DEB = ['debian', 'ubuntu']
+DISTS = RPM + DEB
 
 def get_dist():
+    """Get platform distribution in lower case """
     return platform.dist()[0].lower()
 
-
 def get_directory_name():
-    dist = platform.dist()
-    version = dist[1]
-    dist = "%s-%s" % (platform.dist()[0].lower(), version)
-    return "%s-%s" % (dist, platform.machine().lower())
+    """Returning package directory"""
+    return pkgutils.pkg_dir()
 
-
-def generate_spec(options, tmpl, channel):
+def generate_spec(options_param, tmpl, channel_val):
+    """Generating spec"""
     data = {
-        'channel': channel,
+        'channel': channel_val,
         'system': platform.system().lower(),
         'machine': platform.machine().lower(),
         'dist': get_dist(),
         'directory_name': get_directory_name()
     }
 
-    dist = get_dist()
-    if dist == 'redhat' or dist == 'centos':
-        dist = platform.dist()
+    dist_value = get_dist()
+    if dist_value == 'redhat' or dist_value == 'centos':
+        dist_value = platform.dist()
 
-        major = dist[1].split(".")[0]
-        distro = dist[0]
+        major = dist_value[1].split(".")[0]
+        distro = dist_value[0]
 
-        if re.search('redhat-6.(\d)-x86_64', data['directory_name']):
-            data['directory_name'] = 'redhat-6-x86_64'
-        elif re.search('redhat-5.(\d)-x86_64', data['directory_name']):
-            data['directory_name'] = 'redhat-5-x86_64'
-        elif re.search('centos-5.(\d)-x86_64', data['directory_name']):
-            data['directory_name'] = 'centos-5-x86_64'
-        elif re.search('centos-6.(\d)-x86_64', data['directory_name']):
-            data['directory_name'] = 'centos-6-x86_64'
+        data['directory_name'] = get_redhat_directory_name(data['directory_name'])
 
 
         # http://bugs.centos.org/view.php?id=5197
         # CentOS 5.7 identifies as redhat
         if int(major) <= 5 and distro == "redhat":
-            f = open('/etc/redhat-release')
-            new_dist = f.read().lower().split(" ")[0]
+            os_file = open('/etc/redhat-release')
+            new_dist = os_file.read().lower().split(" ")[0]
             if new_dist == "centos":
                 distro = "centos"
 
@@ -70,73 +61,100 @@ def generate_spec(options, tmpl, channel):
         else:
             data['key'] = 'linux.asc'
 
-    elif dist == 'fedora':
+    elif dist_value == 'fedora':
         data['key'] = 'linux.asc'
 
-    if options.get('distribution'):
-        data['directory_name'] = options['distribution']
+    if options_param.get('distribution'):
+        data['directory_name'] = options_param['distribution']
 
     tmpl = Template(tmpl)
 
-    spec = open(SPEC_FMT % channel, "w")
+    spec = open(SPEC_FMT % channel_val, "w")
     spec.write(tmpl.safe_substitute(data))
     spec.close()
 
-    repo_in = open(REPO_IN % channel).read()
+    repo_in = open(REPO_IN % channel_val).read()
 
     tmpl = Template(repo_in)
-    repo = open(REPO_FMT % channel, "w")
+    repo = open(REPO_FMT % channel_val, "w")
     repo.write(tmpl.safe_substitute(data))
     repo.close()
 
+def get_redhat_directory_name(directory_name):
+    """Module to get redhat directory name using regular expression search. """
+    if re.search('redhat-6', directory_name):
+        directory_name = 'redhat-6-x86_64'
+    elif re.search('redhat-7', directory_name):
+        directory_name = 'redhat-7-x86_64'
+    elif re.search('redhat-5', directory_name):
+        directory_name = 'redhat-5-x86_64'
+    elif re.search('centos-5', directory_name):
+        directory_name = 'centos-5-x86_64'
+    elif re.search('centos-6', directory_name):
+        directory_name = 'centos-6-x86_64'
+    elif re.search('centos-7', directory_name):
+        directory_name = 'centos-7-x86_64'
+    return directory_name
 
-def generate_deb(options, channel):
+def get_debian_directory_name(directory_name):
+    """Module to get debian directory name using regular expression search. """
+    if re.search('debian-7.(.*?)-x86_64', directory_name):
+        directory_name = 'debian-wheezy-x86_64'
+    elif re.search('debian-6.(.*?)-x86_64', directory_name):
+        directory_name = 'debian-squeeze-x86_64'
+    elif re.search('debian-8.(.*?)-x86_64', directory_name):
+        directory_name = 'debian-jessie-x86_64'
+    elif re.search('debian-9.(.*?)-x86_64', directory_name):
+        directory_name = 'debian-stretch-x86_64'
+    return directory_name
+
+def generate_deb(options_param, channel_val):
+    """Generating DEB"""
     data = {
-        'channel': channel,
+        'channel': channel_val,
         'system': platform.system().lower(),
         'machine': platform.machine().lower(),
         'dist': get_dist(),
         'directory_name': get_directory_name()
     }
 
-    if re.search('debian-7.(\d+.\d+)-x86_64', data['directory_name']):
-        data['directory_name'] = 'debian-wheezy-x86_64'
-    elif re.search('debian-6.(\d+.\d+)-x86_64', data['directory_name']):
-        data['directory_name'] = 'debian-squeeze-x86_64'
+    data['directory_name'] = get_debian_directory_name(data['directory_name'])
 
-    if options.get('distribution'):
-        data['directory_name'] = options.get('distribution')
+    if options_param.get('distribution'):
+        data['directory_name'] = options_param.get('distribution')
 
-    tmpl = open(DEB_POSTINST_IN % channel).read()
+    tmpl = open(DEB_POSTINST_IN % channel_val).read()
     tmpl = Template(tmpl)
 
-    postinst = open(DEB_POSTINST % channel, "w")
+    postinst = open(DEB_POSTINST % channel_val, "w")
     postinst.write(tmpl.safe_substitute(data))
     postinst.close()
 
 
 if __name__ == '__main__':
-    parser = OptionParser()
-    parser.add_option("-d", "--distribution", dest="distribution")
-    (options, args) = parser.parse_args()
+    PARSER = OptionParser()
+    PARSER.add_option("-d", "--distribution", dest="distribution")
+    PARSER.add_option("-a", "--target-arch", dest="target_arch", default='x86_64')
+    (OPTIONS, ARGS) = PARSER.parse_args()
 
-    config = {}
-    config['distribution'] = options.distribution
+    CONFIG = {}
+    CONFIG['distribution'] = OPTIONS.distribution
+    CONFIG['target_arch'] = OPTIONS.target_arch
 
-    with open('config.json', 'w') as file:
-        json.dump(config, file)
+    with open('config.json', 'w') as config_file:
+        json.dump(CONFIG, config_file)
 
-    dist = get_dist()
-    if dist not in dists:
+    DIST = get_dist()
+    if DIST not in DISTS:
         sys.exit(0)
 
-    channels = ['stable', 'unstable', 'master']
+    CHANNELS = ['stable', 'unstable', 'master']
 
-    if dist in rpm:
-        spec_tmpl = open(SPEC_IN).read()
-        for channel in channels:
-            generate_spec(config, spec_tmpl, channel)
+    if DIST in RPM:
+        SPEC_TMPL = open(SPEC_IN).read()
+        for channel in CHANNELS:
+            generate_spec(CONFIG, SPEC_TMPL, channel)
 
-    if dist in deb:
-        for channel in channels:
-            generate_deb(config, channel)
+    if DIST in DEB:
+        for channel in CHANNELS:
+            generate_deb(CONFIG, channel)
