@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """Package utility module to read various data """
 import os
-import errno
-import platform
 import sys
 import json
 import subprocess
@@ -15,7 +13,19 @@ import subprocess
 DEB = ['debian', 'ubuntu']
 RPM = ['redhat', 'fedora', 'suse', 'opensuse', 'centos']
 
-DIST = platform.dist()[0].lower()
+d = {}
+with open("/etc/os-release") as f:
+    for line in f:
+        if line.strip() == "":
+            continue
+        k,v = line.lower().rstrip().split("=")
+        d[k] = v.replace('"','')
+
+DIST = d.get('name').split(" ")[0]
+print(DIST + " DIST")
+# In case of redhat distro, there is space in between. SO we only got red.
+if DIST == "red":
+    DIST = "redhat"
 
 def read_config():
     """ Module to read config. """
@@ -27,6 +37,7 @@ def read_config():
     except IOError as _:
         pass
     return config
+
 
 def get_pkg_type():
     """Module to get package type """
@@ -43,64 +54,65 @@ def get_pkg_type():
 
 def pkg_dir():
     """Module package directory """
-    system = platform.system().lower()
-    machine = platform.machine().lower()
-    addon = ""
+    # Using system() method to
+    # execute shell commands
+    #linux
+    system = subprocess.check_output('uname -s', shell=True).strip().lower()
+    # x86_64
+    machine = subprocess.check_output('uname -m', shell=True).strip()
+    version_id = d.get('version_id')
     config = read_config()
-
     # override distribution if configuration is set
     distribution = config.get('distribution', None)
     if distribution:
         return distribution
 
     if system == "freebsd":
-        system = system + platform.release().lower()[0]
-    if system == "linux":
-        platform_dist = platform.dist()
+        # 5.15.0-41-generic
+        kernel_release = subprocess.check_output('uname -r', shell=True).strip()
+        # 5
+        system = system + kernel_release.lower()[0]
 
-        if platform_dist[0] == 'debian':
-            if platform_dist[1][0] == '6':
-                platform_dist = [platform_dist[0], 'squeeze']
-            elif platform_dist[1][0] == '7':
-                platform_dist = [platform_dist[0], 'wheezy']
-            elif platform_dist[1][0] == '8':
-                platform_dist = [platform_dist[0], 'jessie']
-            elif platform_dist[1][0] == '9':
-                platform_dist = [platform_dist[0], 'stretch']
+    if system == "linux":
+        major_version = version_id.split(".")[0]
+        platform_dist = (DIST, major_version)
+        if DIST == 'debian':
+            if major_version == '6':
+                platform_dist = [DIST, 'squeeze']
+            elif major_version == '7':
+                platform_dist = [DIST, 'wheezy']
+            elif major_version == '8':
+                platform_dist = [DIST, 'jessie']
+            elif major_version == '9':
+                platform_dist = [DIST, 'stretch']
             # starting with 10/buster
             else:
                 # use the major numerical version rather than forever maintaining mapping
-                platform_dist = [platform_dist[0], platform_dist[1].split(".")[0]]
+                pass
         # Lower case everything (looking at you Ubuntu)
         platform_dist = tuple([x.lower() for x in platform_dist])
 
         # Treat all redhat 5.* versions the same
         # redhat-5.5 becomes redhat-5
-        if (platform_dist[0] == "redhat" or platform_dist[0] == "centos"):
-            major = platform_dist[1].split(".")[0]
-            distro = platform_dist[0]
-
-            os_file = open('/etc/redhat-release')
-            new_dist = os_file.read().lower().split(" ")[0]
-            if new_dist == "rocky":
-                distro = "rockylinux"
-            else:
-                distro = new_dist
-
-            platform_dist = (distro, major)
+        if (DIST == "redhat" or DIST == "centos"):
+            major = version_id.split(".")[0]
+            platform_dist = (DIST, major)
 
         platform_dist = "%s-%s" % platform_dist[:2]
         return "%s-%s" % (platform_dist, machine)
 
-    return "%s-%s%s" % (system, machine, addon)
+    return "%s-%s%s" % (system, machine, "")
+
 
 def sh_cmd(cmd):
     """Module running shell commands. """
-    print cmd
+    print(cmd)
     res_val = subprocess.call(cmd, shell=True)
     if res_val != 0:
-        print "Exit Code: %s" % (res_val)
+        print("Exit Code: %s" % (res_val))
         sys.exit(1)
+
+
 
 def mkdir_p(path):
     """Module to make directories """
@@ -203,4 +215,4 @@ def package_builder_dir():
     return os.path.join(*build_dir_args)
 
 if __name__ == "__main__":
-    print get_pkg_type()
+    print(get_pkg_type())
