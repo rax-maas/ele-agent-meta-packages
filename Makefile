@@ -1,10 +1,10 @@
 RPMBUILD = `which rpmbuild`
 DPKGBUILD = `which dpkg-buildpackage`
-PLATFORM = `python tools/get_platform.py`
+PLATFORM = `python3 tools/get_platform.py`
 
-PKG_TYPE=$(shell python tools/pkgutils.py)
+PKG_TYPE=$(shell python3 tools/pkgutils.py)
 DESTDIR=../payload
-PYTHON=python
+PYTHON=python3
 
 all:
 	@rm -f config.json
