@@ -5,9 +5,9 @@ import os
 import sys
 import subprocess
 import contextlib
+import argparse
 
 from pkgutils import sh_cmd
-from optparse import OptionParser
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -38,9 +38,9 @@ def get_update_existing(source):
 def is_git_repo(dest):
     try:
         with chdir(dest):
-            print "cd '%s'" % (dest)
+            print(f"cd '{dest}'")
             cmd = "git rev-parse HEAD"
-            print cmd
+            print(cmd)
             rv = subprocess.call(cmd, shell=True)
             if rv == 0:
                 return True
@@ -55,22 +55,20 @@ def ensure_dir(d):
 
 if __name__ == "__main__":
     usage = "usage: %prog [source-uri] [destination path]"
-    parser = OptionParser(usage=usage)
-    (options, args) = parser.parse_args()
+    PARSER = argparse.ArgumentParser(description='To fetch the git repo', usage=usage)
+    PARSER.add_argument("source", help="source uri of git repo")
+    PARSER.add_argument("destination", help="destination path where to extract git repo")
+    ARGS = PARSER.parse_args()
 
-    if len(args) != 2:
-        parser.print_usage()
-        sys.exit(1)
-
-    source = args[0]
-    dest = args[1]
+    source = ARGS.source
+    dest = ARGS.destination
 
     if is_git_repo(dest):
         with chdir(dest):
-            print "cd '%s'" % (dest)
+            print(f"cd '{dest}'")
             get_update_existing(source)
     else:
         ensure_dir(dest)
         with chdir(dest):
-            print "cd '%s'" % (dest)
+            print(f"cd '{dest}'")
             git_clone(source)
