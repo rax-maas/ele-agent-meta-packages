@@ -3,8 +3,9 @@ import platform
 import sys
 import re
 import json
-from optparse import OptionParser
+import argparse
 from string import Template
+import distro
 from tools import pkgutils
 
 SPEC_IN = 'repo.spec.in'
@@ -22,7 +23,11 @@ DISTS = RPM + DEB
 
 def get_dist():
     """Get platform distribution in lower case """
-    return platform.dist()[0].lower()
+    return distro.id().lower()
+
+def get_dist_version():
+    """Get platform distribution version """
+    return distro.version()
 
 def get_directory_name():
     """Returning package directory"""
@@ -39,22 +44,18 @@ def generate_spec(options_param, tmpl, channel_val):
     }
 
     dist_value = get_dist()
-    if dist_value == 'redhat' or dist_value == 'centos':
-        dist_value = platform.dist()
-
-        major = dist_value[1].split(".")[0]
-        distro = dist_value[0]
-
+    if dist_value in ('redhat', 'centos'):
+        major = get_dist_version().split(".")[0]
         data['directory_name'] = get_redhat_directory_name(data['directory_name'])
-
 
         # http://bugs.centos.org/view.php?id=5197
         # CentOS 5.7 identifies as redhat
-        if int(major) <= 5 and distro == "redhat":
-            os_file = open('/etc/redhat-release')
-            new_dist = os_file.read().lower().split(" ")[0]
-            if new_dist == "centos":
-                distro = "centos"
+        if int(major) <= 5 and get_dist() == "redhat":
+            with open('/etc/redhat-release', 'r', encoding='utf-8') as os_file:
+                new_dist = os_file.read().lower().split(" ")[0]
+                if new_dist == "centos":
+                    # pylint: disable=unused-variable
+                    dist_name = "centos"
 
         if major == '5':
             data['key'] = 'centos-5.asc'
@@ -69,16 +70,16 @@ def generate_spec(options_param, tmpl, channel_val):
 
     tmpl = Template(tmpl)
 
-    spec = open(SPEC_FMT % channel_val, "w")
-    spec.write(tmpl.safe_substitute(data))
-    spec.close()
+    with open(SPEC_FMT % channel_val, 'w', encoding='utf-8') as spec:
+        spec.write(tmpl.safe_substitute(data))
+        spec.close()
 
-    repo_in = open(REPO_IN % channel_val).read()
+    with open(REPO_IN % channel_val, 'r', encoding='utf-8') as repo_in:
+        tmpl = Template(repo_in.read())
 
-    tmpl = Template(repo_in)
-    repo = open(REPO_FMT % channel_val, "w")
-    repo.write(tmpl.safe_substitute(data))
-    repo.close()
+    with open(REPO_FMT % channel_val, 'w', encoding='utf-8') as repo:
+        repo.write(tmpl.safe_substitute(data))
+        repo.close()
 
 def get_redhat_directory_name(directory_name):
     """Module to get redhat directory name using regular expression search. """
@@ -123,26 +124,28 @@ def generate_deb(options_param, channel_val):
     if options_param.get('distribution'):
         data['directory_name'] = options_param.get('distribution')
 
-    tmpl = open(DEB_POSTINST_IN % channel_val).read()
-    tmpl = Template(tmpl)
+    with open(DEB_POSTINST_IN % channel_val, 'r', encoding='utf-8') as tmpl:
+        tmpl = Template(tmpl.read())
 
-    postinst = open(DEB_POSTINST % channel_val, "w")
-    postinst.write(tmpl.safe_substitute(data))
-    postinst.close()
+    with open(DEB_POSTINST % channel_val, 'w', encoding='utf-8') as postinst:
+        postinst.write(tmpl.safe_substitute(data))
+        postinst.close()
 
 
 if __name__ == '__main__':
-    PARSER = OptionParser()
-    PARSER.add_option("-d", "--distribution", dest="distribution")
-    PARSER.add_option("-a", "--target-arch", dest="target_arch", default='x86_64')
-    (OPTIONS, ARGS) = PARSER.parse_args()
+    PARSER = argparse.ArgumentParser(description='To parse distribution and target arch')
+    PARSER.add_argument("-d", "--distribution", dest="distribution", help="Specify distribution")
+    PARSER.add_argument("-a", "--target-arch", dest="target_arch", default='x86_64',
+                        help="Specify target architecture")
+    ARGS = PARSER.parse_args()
 
     CONFIG = {}
-    CONFIG['distribution'] = OPTIONS.distribution
-    CONFIG['target_arch'] = OPTIONS.target_arch
+    CONFIG['distribution'] = ARGS.distribution
+    CONFIG['target_arch'] = ARGS.target_arch
 
-    with open('config.json', 'w') as config_file:
+    with open('config.json', 'w', encoding='utf-8') as config_file:
         json.dump(CONFIG, config_file)
+        config_file.close()
 
     DIST = get_dist()
     if DIST not in DISTS:
@@ -151,9 +154,9 @@ if __name__ == '__main__':
     CHANNELS = ['stable', 'unstable', 'master']
 
     if DIST in RPM:
-        SPEC_TMPL = open(SPEC_IN).read()
-        for channel in CHANNELS:
-            generate_spec(CONFIG, SPEC_TMPL, channel)
+        with open(SPEC_IN, 'r', encoding='utf-8') as SPEC_TMPL:
+            for channel in CHANNELS:
+                generate_spec(CONFIG, SPEC_TMPL.read(), channel)
 
     if DIST in DEB:
         for channel in CHANNELS:

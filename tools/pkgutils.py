@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pylint: disable=invalid-name
 """Package utility module to read various data """
 import os
 import errno
@@ -6,6 +7,7 @@ import platform
 import sys
 import json
 import subprocess
+import distro
 
 # Figure out what type of package to build based on platform info
 #
@@ -13,17 +15,18 @@ import subprocess
 # Windows does MSI?
 
 DEB = ['debian', 'ubuntu']
-RPM = ['redhat', 'fedora', 'suse', 'opensuse', 'centos']
+RPM = ['redhat', 'fedora', 'suse', 'opensuse', 'centos', 'rocky', 'almalinux']
 
-DIST = platform.dist()[0].lower()
+DIST = distro.id().lower()
+DIST_VERSION = distro.version()
 
 def read_config():
     """ Module to read config. """
     config = {}
     path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
     try:
-        data = open(path).read()
-        config = json.loads(data)
+        with open(path, 'r', encoding='utf-8') as data:
+            config = json.loads(data.read())
     except IOError as _:
         pass
     return config
@@ -56,50 +59,49 @@ def pkg_dir():
     if system == "freebsd":
         system = system + platform.release().lower()[0]
     if system == "linux":
-        platform_dist = platform.dist()
+        dist_major_version = DIST_VERSION.split(".")[0]
+        platform_dist = (DIST, DIST_VERSION)
 
-        if platform_dist[0] == 'debian':
-            if platform_dist[1][0] == '6':
-                platform_dist = [platform_dist[0], 'squeeze']
-            elif platform_dist[1][0] == '7':
-                platform_dist = [platform_dist[0], 'wheezy']
-            elif platform_dist[1][0] == '8':
-                platform_dist = [platform_dist[0], 'jessie']
-            elif platform_dist[1][0] == '9':
-                platform_dist = [platform_dist[0], 'stretch']
+        if DIST == 'debian':
+            if dist_major_version == '6':
+                platform_dist = [DIST, 'squeeze']
+            elif dist_major_version == '7':
+                platform_dist = [DIST, 'wheezy']
+            elif dist_major_version == '8':
+                platform_dist = [DIST, 'jessie']
+            elif dist_major_version == '9':
+                platform_dist = [DIST, 'stretch']
             # starting with 10/buster
             else:
                 # use the major numerical version rather than forever maintaining mapping
-                platform_dist = [platform_dist[0], platform_dist[1].split(".")[0]]
+                platform_dist = [DIST, dist_major_version]
         # Lower case everything (looking at you Ubuntu)
+        # pylint: disable=consider-using-generator
         platform_dist = tuple([x.lower() for x in platform_dist])
 
         # Treat all redhat 5.* versions the same
         # redhat-5.5 becomes redhat-5
-        if (platform_dist[0] == "redhat" or platform_dist[0] == "centos"):
-            major = platform_dist[1].split(".")[0]
-            distro = platform_dist[0]
+        if DIST in ('redhat', 'centos'):
+            with open('/etc/redhat-release', 'r', encoding='utf-8') as os_file:
+                new_dist = os_file.read().lower().split(" ")[0]
+                if new_dist == "rocky":
+                    dist_name = "rockylinux"
+                else:
+                    dist_name = new_dist
+                platform_dist = (dist_name, dist_major_version)
 
-            os_file = open('/etc/redhat-release')
-            new_dist = os_file.read().lower().split(" ")[0]
-            if new_dist == "rocky":
-                distro = "rockylinux"
-            else:
-                distro = new_dist
+        # pylint: disable=consider-using-f-string
+        platform_dist = "%s-%s" % platform_dist
+        return f"{platform_dist}-{machine}"
 
-            platform_dist = (distro, major)
-
-        platform_dist = "%s-%s" % platform_dist[:2]
-        return "%s-%s" % (platform_dist, machine)
-
-    return "%s-%s%s" % (system, machine, addon)
+    return f"{system}-{machine}{addon}"
 
 def sh_cmd(cmd):
     """Module running shell commands. """
-    print cmd
+    print(cmd)
     res_val = subprocess.call(cmd, shell=True)
     if res_val != 0:
-        print "Exit Code: %s" % (res_val)
+        print(f"Exit Code: {res_val}")
         sys.exit(1)
 
 def mkdir_p(path):
@@ -130,27 +132,27 @@ def _git_describe(is_exact, git_dir, cwd):
     """Method running git commands to fetch version """
     describe = "git "
     if cwd:
-        describe = "%s --git-dir=%s/.git --work-tree=%s " % (describe, git_dir, cwd)
+        describe = f"{describe} --git-dir={git_dir}/.git --work-tree={cwd} "
 
     if is_exact:
         options = "--exact-match"
     else:
         options = "--always"
 
-    describe = "%s describe --tags %s" % (describe, options)
+    describe = f"{describe} describe --tags {options}"
 
-    git_process = subprocess.Popen(describe,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   shell=True,
-                                   cwd=cwd)
+    with subprocess.Popen(describe,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE,
+                          shell=True,
+                          cwd=cwd) as git_process:
 
-    version, errors = git_process.communicate()
+        version, errors = git_process.communicate()
 
-    if errors:
-        raise ValueError("The command failed:\n%s\n%s" % (describe, errors))
+        if errors:
+            raise ValueError(f"The command failed:\n{describe}\n{errors}")
 
-    return version
+        return version
 
 
 # git describe return "0.1-143-ga554734"
@@ -173,12 +175,13 @@ def git_describe(is_exact=False, split=True, cwd=None):
 
 def git_head():
     """ Module getting git_head"""
-    git_process = subprocess.Popen('git rev-parse HEAD',
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   shell=True)
-    version, _ = git_process.communicate()
-    return version.strip()
+    with subprocess.Popen(['git', 'rev-parse', 'HEAD'],
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE,
+                          shell=True) as git_process:
+
+        version, _ = git_process.communicate()
+        return version.strip()
 
 def package_builder_dir():
     """returns the directory that is packaged into rpms/debs.
@@ -193,14 +196,14 @@ def package_builder_dir():
     elif pkg_type == 'RPM':
         git_version = git_describe()
         build_dir_args = [base_path, 'out']
-        build_dir_args += ('rpmbuild', 'BUILD', "rackspace-monitoring-agent-%s" % git_version[0])
+        build_dir_args += ('rpmbuild', 'BUILD', f"rackspace-monitoring-agent-{git_version[0]}")
         build_dir_args += ('out', 'Debug')
     elif pkg_type == 'windows':
         build_dir_args = [base_path, 'base\\Release']
     else:
-        raise AttributeError('Unsupported pkg type, %s' % (pkg_type))
+        raise AttributeError(f'Unsupported pkg type, {pkg_type}')
 
     return os.path.join(*build_dir_args)
 
 if __name__ == "__main__":
-    print get_pkg_type()
+    print(f"{get_pkg_type()}")
