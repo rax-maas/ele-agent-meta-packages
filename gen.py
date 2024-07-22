@@ -156,6 +156,7 @@ if __name__ == '__main__':
     if DIST in RPM:
         with open(SPEC_IN, 'r', encoding='utf-8') as SPEC_TMPL:
             for channel in CHANNELS:
+                SPEC_TMPL.seek(0)
                 generate_spec(CONFIG, SPEC_TMPL.read(), channel)
 
     if DIST in DEB:
