@@ -81,7 +81,7 @@ def pkg_dir():
 
         # Treat all redhat 5.* versions the same
         # redhat-5.5 becomes redhat-5
-        if DIST in ('redhat', 'centos'):
+        if DIST in ('redhat', 'centos', 'rocky', 'almalinux'):
             with open('/etc/redhat-release', 'r', encoding='utf-8') as os_file:
                 new_dist = os_file.read().lower().split(" ")[0]
                 if new_dist == "rocky":

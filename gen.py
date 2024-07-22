@@ -17,7 +17,7 @@ REPO_FMT = 'SOURCES/repos/rackspace-cloud-monitoring-%s.repo'
 DEB_POSTINST_IN = 'DEB/rackspace-cloud-monitoring-meta-%s-1.0/debian/postinst.in'
 DEB_POSTINST = 'DEB/rackspace-cloud-monitoring-meta-%s-1.0/debian/postinst'
 
-RPM = ['redhat', 'fedora', 'suse', 'opensuse', 'centos']
+RPM = ['redhat', 'fedora', 'suse', 'opensuse', 'centos', 'rocky', 'almalinux']
 DEB = ['debian', 'ubuntu']
 DISTS = RPM + DEB
 
@@ -44,7 +44,7 @@ def generate_spec(options_param, tmpl, channel_val):
     }
 
     dist_value = get_dist()
-    if dist_value in ('redhat', 'centos'):
+    if dist_value in ('redhat', 'centos', 'rocky', 'almalinux'):
         major = get_dist_version().split(".")[0]
         data['directory_name'] = get_redhat_directory_name(data['directory_name'])
 
